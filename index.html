@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Cromos Panini 2026</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: #0f0f12;
+            color: #eeeeee;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .app-container {
+            display: flex;
+            flex-direction: row;
+            gap: 30px;
+            background-color: #16161a;
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.7);
+            max-width: 950px;
+            width: 100%;
+        }
+        .form-section, .preview-section { 
+            flex: 1; 
+            display: flex; 
+            flex-direction: column; 
+        }
+        .preview-section { 
+            border-left: 1px solid #2a2a35; 
+            padding-left: 30px; 
+            align-items: center; 
+            justify-content: flex-start; 
+        }
+        h2 { color: #ffcc00; margin-top: 0; margin-bottom: 20px; font-size: 24px; }
+        .form-group { margin-bottom: 16px; }
+        .form-row { display: flex; gap: 12px; margin-bottom: 16px; }
+        .form-row .form-group { flex: 1; margin-bottom: 0; }
+        label { display: block; margin-bottom: 6px; font-size: 13px; color: #aaaaaa; font-weight: 600; }
+        input[type="text"], input[type="file"] {
+            width: 100%; padding: 11px 14px; border: 1px solid #333344;
+            border-radius: 8px; background-color: #202026; color: #ffffff; box-sizing: border-box;
+            font-size: 14px;
+        }
+        input:focus { border-color: #ffcc00; outline: none; background-color: #25252e; }
+        button {
+            width: 100%; padding: 14px; border: none; border-radius: 8px;
+            font-size: 16px; font-weight: bold; cursor: pointer; background-color: #ffcc00; color: #121212;
+            transition: all 0.3s ease; margin-top: 10px; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        button:hover { background-color: #e6b800; transform: translateY(-1px); }
+        .btn-download {
+            background-color: #00cc66; color: #ffffff; display: none; margin-top: 20px;
+            text-decoration: none; text-align: center; width: 100%; padding: 14px; border-radius: 8px; font-weight: bold;
+            font-size: 16px; transition: background 0.2s; box-sizing: border-box;
+        }
+        .btn-download:hover { background-color: #00a352; }
+        
+        .result-box {
+            width: 100%; min-height: 480px; border: 2px dashed #333344; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center; background-color: #1a1a24; overflow: hidden;
+            position: relative;
+        }
+        #resultImage { max-width: 100%; max-height: 520px; display: block; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        
+        .loader {
+            display: none; border: 4px solid #222230; border-top: 4px solid #ffcc00;
+            border-radius: 50%; width: 45px; height: 45px; animation: spin 1s linear infinite;
+            position: absolute; z-index: 10;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .status-badge {
+            color: #00cc66; font-weight: bold; font-size: 13px; padding: 10px; 
+            background: #14291e; border-radius: 6px; border: 1px solid #1f422f; display: inline-block; width: 100%; box-sizing: border-box;
+        }
+        @media (max-width: 768px) {
+            .app-container { flex-direction: column; }
+            .preview-section { border-left: none; padding-left: 0; padding-top: 25px; border-top: 1px solid #2a2a35; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <div class="form-section">
+        <h2>Diseño de Cromo 2026</h2>
+        
+        <form id="aiCromoForm">
+            <div class="form-group">
+                <label>1. Plantilla de Fondo de Cromo (Imagen 1):</label>
+                <div class="status-badge">
+                    ✓ IMAGEN 1 Vinculada y bloqueada en la memoria del sistema
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="fullName">Nombre del Jugador:</label>
+                <input type="text" id="fullName" value="ALEX CONDE" required>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="birthDate">Fecha de Nacimiento:</label>
+                    <input type="text" id="birthDate" value="08/02/1991" placeholder="DD/MM/AAAA" required>
+                </div>
+                <div class="form-group">
+                    <label for="height">Estatura:</label>
+                    <input type="text" id="height" value="1,75 m" placeholder="Ej: 1,75 m" required>
+                </div>
+                <div class="form-group">
+                    <label for="weight">Peso:</label>
+                    <input type="text" id="weight" value="80 kg" placeholder="Ej: 80 kg" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="team">País / Equipo:</label>
+                <input type="text" id="team" value="COLOMBIA" required>
+            </div>
+
+            <div class="form-group">
+                <label for="userImage">2. Sube la Foto de Perfil (IMAGEN 2):</label>
+                <input type="file" id="userImage" accept="image/*" required>
+            </div>
+
+            <button type="submit" id="btnSubmit">Generar Cromo de Alta Calidad</button>
+        </form>
+    </div>
+
+    <div class="preview-section">
+        <div class="result-box" id="resultBox">
+            <div class="loader" id="loader"></div>
+            <span id="placeholderText" style="color: #888899; text-align: center; padding: 20px; font-size: 14px; display: none;">La foto de perfil se fusionará dinámicamente con tu plantilla oficial...</span>
+            <!-- Se reemplazó canvas por una etiqueta img nativa para renderizar la respuesta de la IA -->
+            <img id="resultImage" alt="Vista Previa de Plantilla">
+        </div>
+        <a id="downloadBtn" class="btn-download" href="#" download="mi_cromo_panini_2026.png">Descargar Cromo Oficial</a>
+    </div>
+</div>
+
+<script>
+    // Token de acceso integrado
+    const HF_TOKEN = prompt("Por favor, ingresa tu Token de Hugging Face:");
+
+    // Tu imagen base64 aportada (Actúa como Imagen 1 por defecto al cargar)
+    const IMAGEN_1_BASE64 = "data:image/jpeg;base64,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 QAUUUUAFFFFABRRR QAUUUUAFFFFABRRR QAUVKgGKaw5FBXLpcRTg /eKdwRS8UGiTRXop79aeFFBHLq Q Up NJQQFFFF ABRRR QAUUUUAFFFF ABRRR QAUUUUAFFFF ABRRR QAoGeKk2DFRg  NSh g Rmg  h YiIxSUrHJp6L3NBNrv Q YRT1bP q jPWoimOnNBVmtUS  VGrdqcWAG";
+
+    const form = document.getElementById('aiCromoForm');
+    const loader = document.getElementById('loader');
+    const placeholderText = document.getElementById('placeholderText');
+    const resultImage = document.getElementById('resultImage');
+    const downloadBtn = document.getElementById('downloadBtn');
+
+    // Al cargar la pagina, la Imagen 1 se muestra automaticamente en la sección de la derecha
+    window.addEventListener('DOMContentLoaded', () => {
+        resultImage.src = IMAGEN_1_BASE64;
+    });
+
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        // Activando la animación de carga sobre la interfaz
+        loader.style.display = 'block';
+        resultImage.style.opacity = "0.3";
+        downloadBtn.style.display = 'none';
+
+        // Capturar los valores del formulario
+        const fullName = document.getElementById('fullName').value.toUpperCase();
+        const birth = document.getElementById('birthDate').value.trim();
+        const height = document.getElementById('height').value.trim();
+        const weight = document.getElementById('weight').value.trim();
+        const teamName = document.getElementById('team').value.toUpperCase();
+
+        // Estructuración limpia de datos para la IA
+        const infoSpecs = `${birth} / ${height} / ${weight}`;
+        const userFileInput = document.getElementById('userImage').files[0];
+        
+        try {
+            const userBase64 = await convertFileToBase64(userFileInput);
+
+            // Prompt de Ingeniería de Diseño para inyectar tus variables al cromo
+            const promptTexto = `Professional Panini 2026 World Cup football card style, photorealistic. Face swap process: replace the face of the player in the template with the face from the user photo. The person must wear the yellow Colombia national football team jersey with official textures and shadows. Change the main name text banner to say exactly: "${fullName}". In the middle details bar, render the text: "${infoSpecs}". In the bottom footer club bar, render: "${teamName}". High resolution, perfect composition, 8k.`;
+
+            // Conexión Serverless Directa (No requiere backend en el PC de ejecución)
+            const response = await fetch("https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${API_TOKEN}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    inputs: promptTexto,
+                    parameters: { negative_prompt: "blurry, distorted face, bad anatomy, deformed text, low quality, ugly" }
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ error: "Error de cuota o autenticación en el servidor de IA." }));
+                throw new Error(errorData.error || `Error del servidor (Código ${response.status})`);
+            }
+
+            const blob = await response.blob();
+            const resultadoUrl = URL.createObjectURL(blob);
+
+            // Reemplazar la vista previa por el cromo final procesado
+            loader.style.display = 'none';
+            resultImage.style.opacity = "1";
+            resultImage.src = resultadoUrl;
+
+            // Desplegar botón de descarga directa
+            downloadBtn.href = resultadoUrl;
+            downloadBtn.style.display = 'block';
+
+        } catch (error) {
+            loader.style.display = 'none';
+            resultImage.style.opacity = "1";
+            resultImage.src = IMAGEN_1_BASE64; // Retorna a la imagen base si hay error
+            alert(`No se pudo procesar tu cromo.\nMotivo: ${error.message}`);
+        }
+    });
+
+    function convertFileToBase64(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+        });
+    }
+</script>
+
+</body>
+</html>
