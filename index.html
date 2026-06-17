@@ -145,19 +145,14 @@
 </div>
 
 <script>
-    // Token de acceso solicitado al inicializar de manera segura en cliente
-    const HF_TOKEN = prompt("Por favor, ingresa tu Token de Hugging Face:");
-
-    // Tu imagen base64 completa restaurada
+    // Se usa la constante base64 provista para el fondo base
     const IMAGEN_1_BASE64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA/YAAAKYCAYAAADZkWPKAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAP+lSURBVHhe7P13vG1HcecNf3vtfW4OugpXOSckgRCSQAhEzsYm2xhsY9kGx3Ga4Ame+Yzt1zN+Z97nGXv8jD0ORCc8xuAANn5sDJhggwkSIkuAEihd5ZvP2Xv1+0dVrVW7dq+dzrkKcOp+zt1rdaiuX3evDtXV3Wn//v2ZdVqndVqndVqndVqndVqndVqnRzht27aNKjqu0zqt0zqt0zqt0zqt0zqt0zqt0zqt06OH1if267RO67RO67RO67RO67RO67RO67RO6/QopvWJ/Tqt0zqt0zqt0zqt0zqt0zqt0zo9iml9Yr9O67RO67RO67RO67RO67RO67RO6/QopvWJ/Tqt0zqt0zqt0zqt0zqt0zqt0zo9iml9Yr9O67RO67RO67RO67RO67RO67RO6/Qop4mn4r/y1CcDkHMmpUWilZrnnOWWvOhWkxkCCejT+pm/vnvy/XHpGK7mmqip64WK+GM9TSUZ7Xsk1dc4spUSila2LIgYfPicY5gwpUVsaqjGpSJBrUqpICXIex0YBRwyTc6aqqjEZU0oMck0N9Cw95xfx12TqlERexV8BKY3z9jQJf8lt6OpAlTO9VJEUtLii7/v5u/DXyqsO+BuUE8qtJKM914rf8jimH2le/JPi2runGDeGyRPKP7oZlWS054cafy8l+qmCAv6h1slvZvw+bsRGIf0Y5kjgTzlTpUQWx04+FDAkbcwqoK9tR5csMW7EBtKGDnImW7uZoVpj/EOVV/DXkAW3tYnkPNaGGkUMkXd0y9r+rbb/y2RpAxU/GqYCEknKb0b89jzU/qqn7XL0L1HEEHkv55p+SqQCixh3Ov7MsoZZ0rLIC5Z/nTOZTLY+z8WRfmn1/X/JzdNKriElllKCKf3/QMs7q2w9LedF8UcZ7XlZxz+ShtSjFR1HQDt2Mym78Pu2eyQNi1eIOwm/UQyz1vjX2/9R/P2UqIpsMgNtf76Z8U/iQwFD5BfdJsWN2C";
 
     const form = document.getElementById('aiCromoForm');
     const loader = document.getElementById('loader');
-    const placeholderText = document.getElementById('placeholderText');
     const resultImage = document.getElementById('resultImage');
     const downloadBtn = document.getElementById('downloadBtn');
 
-    // Al cargar la página se expone el estado inicial
     window.addEventListener('DOMContentLoaded', () => {
         resultImage.src = IMAGEN_1_BASE64;
     });
@@ -174,35 +169,64 @@
         const height = document.getElementById('height').value.trim();
         const weight = document.getElementById('weight').value.trim();
         const teamName = document.getElementById('team').value.toUpperCase();
-
-        const infoSpecs = `${birth} / ${height} / ${weight}`;
         const userFileInput = document.getElementById('userImage').files[0];
-        
+
+        if (!userFileInput) {
+            alert("Por favor selecciona una foto de perfil.");
+            loader.style.display = 'none';
+            resultImage.style.opacity = "1";
+            return;
+        }
+
         try {
+            // Instanciar imágenes en elementos HTML en memoria para procesar en Canvas
+            const imgFondo = new Image();
+            imgFondo.src = IMAGEN_1_BASE64;
+            await new Promise(r => imgFondo.onload = r);
+
             const userBase64 = await convertFileToBase64(userFileInput);
+            const imgUsuario = new Image();
+            imgUsuario.src = userBase64;
+            await new Promise(r => imgUsuario.onload = r);
 
-            const promptTexto = `Professional Panini 2026 World Cup football card style, photorealistic. Face swap process: replace the face of the player in the template with the face from the user photo. The person must wear the yellow Colombia national football team jersey with official textures and shadows. Change the main name text banner to say exactly: "${fullName}". In the middle details bar, render the text: "${infoSpecs}". In the bottom footer club bar, render: "${teamName}". High resolution, perfect composition, 8k.`;
+            // Crear Canvas con las dimensiones nativas de la plantilla de fondo
+            const canvas = document.createElement('canvas');
+            canvas.width = imgFondo.width;
+            canvas.height = imgFondo.height;
+            const ctx = canvas.getContext('2d');
 
-            // Petición corregida apuntando a la constante HF_TOKEN
-            const response = await fetch("https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0", {
-                method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${HF_TOKEN}`,
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    inputs: promptTexto,
-                    parameters: { negative_prompt: "blurry, distorted face, bad anatomy, deformed text, low quality, ugly" }
-                })
-            });
+            // 1. Dibujar el fondo base del cromo
+            ctx.drawImage(imgFondo, 0, 0);
 
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({ error: "Error de cuota o autenticación en el servidor de IA." }));
-                throw new Error(errorData.error || `Error del servidor (Código ${response.status})`);
-            }
+            // 2. Dibujar la foto del usuario redimensionada en el área del jugador
+            // Ajusta estas coordenadas (X, Y, Ancho, Alto) según el diseño exacto de tu cromo
+            const xJugador = canvas.width * 0.15;
+            const yJugador = canvas.height * 0.18;
+            const anchoJugador = canvas.width * 0.45;
+            const altoJugador = canvas.height * 0.50;
+            ctx.drawImage(imgUsuario, xJugador, yJugador, anchoJugador, altoJugador);
 
-            const blob = await response.blob();
-            const resultadoUrl = URL.createObjectURL(blob);
+            // 3. Renderizar los textos personalizados encima del diseño
+            ctx.fillStyle = "#ffffff";
+            ctx.textAlign = "center";
+
+            // Nombre del Jugador
+            ctx.font = "bold 28px 'Segoe UI', Arial, sans-serif";
+            ctx.fillText(fullName, canvas.width * 0.72, canvas.height * 0.42);
+
+            // Detalles físicos (Fecha / Estatura / Peso)
+            ctx.font = "18px 'Segoe UI', Arial, sans-serif";
+            ctx.fillStyle = "#121212";
+            const infoSpecs = `${birth} | ${height} | ${weight}`;
+            ctx.fillText(infoSpecs, canvas.width * 0.72, canvas.height * 0.55);
+
+            // País o Club
+            ctx.font = "bold 20px 'Segoe UI', Arial, sans-serif";
+            ctx.fillStyle = "#ffffff";
+            ctx.fillText(teamName, canvas.width * 0.72, canvas.height * 0.68);
+
+            // Extraer el resultado en formato de imagen estructurada
+            const resultadoUrl = canvas.toDataURL('image/png');
 
             loader.style.display = 'none';
             resultImage.style.opacity = "1";
@@ -215,7 +239,7 @@
             loader.style.display = 'none';
             resultImage.style.opacity = "1";
             resultImage.src = IMAGEN_1_BASE64;
-            alert(`No se pudo procesar tu cromo.\nMotivo: ${error.message}`);
+            alert(`Error al estructurar el cromo: ${error.message}`);
         }
     });
 
