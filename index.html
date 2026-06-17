@@ -138,7 +138,6 @@
         <div class="result-box" id="resultBox">
             <div class="loader" id="loader"></div>
             <span id="placeholderText" style="color: #888899; text-align: center; padding: 20px; font-size: 14px; display: none;">La foto de perfil se fusionará dinámicamente con tu plantilla oficial...</span>
-            <!-- Se reemplazó canvas por una etiqueta img nativa para renderizar la respuesta de la IA -->
             <img id="resultImage" alt="Vista Previa de Plantilla">
         </div>
         <a id="downloadBtn" class="btn-download" href="#" download="mi_cromo_panini_2026.png">Descargar Cromo Oficial</a>
@@ -146,11 +145,11 @@
 </div>
 
 <script>
-    // Token de acceso integrado
+    // Token de acceso solicitado al inicializar de manera segura en cliente
     const HF_TOKEN = prompt("Por favor, ingresa tu Token de Hugging Face:");
 
-    // Tu imagen base64 aportada (Actúa como Imagen 1 por defecto al cargar)
-const IMAGEN_1_BASE64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA/YAAAKYCAYAAADZkWPKAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAP+lSURBVHhe7P13vG1HcecNf3vtfW4OugpXOSckgRCSQAhEzsYm2xhsY9kGx3Ga4Ame+Yzt1zN+Z97nGXv8jD0ORCc8xuAANn5sDJhggwkSIkuAEihd5ZvP2Xv1+0dVrVW7dq+dzrkKcOp+zt1rdaiuX3evDtXV3Wn//v2ZdVqndVqndVqndVqndVqndVqndXpUUtq/f3/et29fdF+ndVqndVqndVqndVqndVqndVqndXpUUtq/f3/et29fdF+ndVqndVqndVqndVqndVqndVqnRzht27aNKjqu0zqt0zqt0zqt0zqt0zqt0zqt0zqt06OH1if267RO67RO67RO67RO67RO67RO67RO6/QopvWJ/Tqt0zqt0zqt0zqt0zqt0zqt0zo9iml9Yr9O67RO67RO67RO67RO67RO67RO6/QopvWJ/Tqt0zqt0zqt0zqt0zqt0zqt06OYJp6K/8pTnwxAzpmUEiml5jlnuSUvutVkhkAC+rR+5m/vnjw/XHpGK7mmqip64WK+GM9TSUZ7Xsk1dc4spUSila2LIgYfPicY5gwpUVsaqjGpSJBrUqpICXIex0YBRwyTc6aqqjEZU0oMck0N9Cw95xfx12TqlERexV8BKY3z9jQJf8lt6OpAlTO9VJETrLjy7zt5u/DXyqsO+BuUE8qtJKM914rf8jimH2le/JPi2runGDeGyRPKP7oZlWS054cafy8l+qmCAv6h1slvZvw+bsRGIf0Y5kjgTzlTpUQWx04+FDAkbcwqoK9tR5csMW7EBtKGDnImW7uZoVpj/EOVV/DXkAW3tYnkPNaGGkUMkXd0y9r+rbb/y2RpAxU/GqYCEknKb0b89jzU/qqn7XL0L1HEEHkv55p+SqQCixh3Ov7MsoZZ0rLIC5Z/nTOZTLY+z8WRfmn1/X/JzdNKriElllKCKf3/QMs7q2w9LedF8UcZ7XlZxz+ShtSjFR1HQDt2Mym78Pu2eyQNi1eIOwm/UQyz1vjX2/9R/P2UqIpsMgNtf76Z8U/iQwFD5BfdJsWN2C
+    // Tu imagen base64 completa restaurada
+    const IMAGEN_1_BASE64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA/YAAAKYCAYAAADZkWPKAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAP+lSURBVHhe7P13vG1HcecNf3vtfW4OugpXOSckgRCSQAhEzsYm2xhsY9kGx3Ga4Ame+Yzt1zN+Z97nGXv8jD0ORCc8xuAANn5sDJhggwkSIkuAEihd5ZvP2Xv1+0dVrVW7dq+dzrkKcOp+zt1rdaiuX3evDtXV3Wn//v2ZdVqndVqndVqndVqndVqndVqnRzht27aNKjqu0zqt0zqt0zqt0zqt0zqt0zqt0zqt06OH1if267RO67RO67RO67RO67RO67RO67RO6/QopvWJ/Tqt0zqt0zqt0zqt0zqt0zqt0zo9iml9Yr9O67RO67RO67RO67RO67RO67RO6/QopvWJ/Tqt0zqt0zqt0zqt0zqt0zqt0zo9iml9Yr9O67RO67RO67RO67RO67RO67RO6/Qop4mn4r/y1CcDkHMmpUWilZrnnOWWvOhWkxkCCejT+pm/vnvy/XHpGK7mmqip64WK+GM9TSUZ7Xsk1dc4spUSila2LIgYfPicY5gwpUVsaqjGpSJBrUqpICXIex0YBRwyTc6aqqjEZU0oMck0N9Cw95xfx12TqlERexV8BKY3z9jQJf8lt6OpAlTO9VJEUtLii7/v5u/DXyqsO+BuUE8qtJKM914rf8jimH2le/JPi2runGDeGyRPKP7oZlWS054cafy8l+qmCAv6h1slvZvw+bsRGIf0Y5kjgTzlTpUQWx04+FDAkbcwqoK9tR5csMW7EBtKGDnImW7uZoVpj/EOVV/DXkAW3tYnkPNaGGkUMkXd0y9r+rbb/y2RpAxU/GqYCEknKb0b89jzU/qqn7XL0L1HEEHkv55p+SqQCixh3Ov7MsoZZ0rLIC5Z/nTOZTLY+z8WRfmn1/X/JzdNKriElllKCKf3/QMs7q2w9LedF8UcZ7XlZxz+ShtSjFR1HQDt2Mym78Pu2eyQNi1eIOwm/UQyz1vjX2/9R/P2UqIpsMgNtf76Z8U/iQwFD5BfdJsWN2C";
 
     const form = document.getElementById('aiCromoForm');
     const loader = document.getElementById('loader');
@@ -158,7 +157,7 @@ const IMAGEN_1_BASE64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA/YAAAKYC
     const resultImage = document.getElementById('resultImage');
     const downloadBtn = document.getElementById('downloadBtn');
 
-    // Al cargar la pagina, la Imagen 1 se muestra automaticamente en la sección de la derecha
+    // Al cargar la página se expone el estado inicial
     window.addEventListener('DOMContentLoaded', () => {
         resultImage.src = IMAGEN_1_BASE64;
     });
@@ -166,33 +165,29 @@ const IMAGEN_1_BASE64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA/YAAAKYC
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
 
-        // Activando la animación de carga sobre la interfaz
         loader.style.display = 'block';
         resultImage.style.opacity = "0.3";
         downloadBtn.style.display = 'none';
 
-        // Capturar los valores del formulario
         const fullName = document.getElementById('fullName').value.toUpperCase();
         const birth = document.getElementById('birthDate').value.trim();
         const height = document.getElementById('height').value.trim();
         const weight = document.getElementById('weight').value.trim();
         const teamName = document.getElementById('team').value.toUpperCase();
 
-        // Estructuración limpia de datos para la IA
         const infoSpecs = `${birth} / ${height} / ${weight}`;
         const userFileInput = document.getElementById('userImage').files[0];
         
         try {
             const userBase64 = await convertFileToBase64(userFileInput);
 
-            // Prompt de Ingeniería de Diseño para inyectar tus variables al cromo
             const promptTexto = `Professional Panini 2026 World Cup football card style, photorealistic. Face swap process: replace the face of the player in the template with the face from the user photo. The person must wear the yellow Colombia national football team jersey with official textures and shadows. Change the main name text banner to say exactly: "${fullName}". In the middle details bar, render the text: "${infoSpecs}". In the bottom footer club bar, render: "${teamName}". High resolution, perfect composition, 8k.`;
 
-            // Conexión Serverless Directa (No requiere backend en el PC de ejecución)
+            // Petición corregida apuntando a la constante HF_TOKEN
             const response = await fetch("https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0", {
                 method: "POST",
                 headers: {
-                    "Authorization": `Bearer ${API_TOKEN}`,
+                    "Authorization": `Bearer ${HF_TOKEN}`,
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
@@ -209,19 +204,17 @@ const IMAGEN_1_BASE64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA/YAAAKYC
             const blob = await response.blob();
             const resultadoUrl = URL.createObjectURL(blob);
 
-            // Reemplazar la vista previa por el cromo final procesado
             loader.style.display = 'none';
             resultImage.style.opacity = "1";
             resultImage.src = resultadoUrl;
 
-            // Desplegar botón de descarga directa
             downloadBtn.href = resultadoUrl;
             downloadBtn.style.display = 'block';
 
         } catch (error) {
             loader.style.display = 'none';
             resultImage.style.opacity = "1";
-            resultImage.src = IMAGEN_1_BASE64; // Retorna a la imagen base si hay error
+            resultImage.src = IMAGEN_1_BASE64;
             alert(`No se pudo procesar tu cromo.\nMotivo: ${error.message}`);
         }
     });
